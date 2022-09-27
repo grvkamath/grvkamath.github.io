@@ -117,13 +117,13 @@
   }
 }
 .sidebar .author__name {
-  font-family: $sans-serif;
+  font-family: $monospace;
   font-size: $type-size-5;
 }
 
 .author__bio {
   margin: 0;
-  font: Garamond;
+  font: monospace;
   font-size:larger;
 
   @include breakpoint($large) {
