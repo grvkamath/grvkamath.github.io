@@ -3,9 +3,10 @@ permalink: /
 title: 
 excerpt: "About me"
 author_profile: true
+sitemap: false
 redirect_from: 
   - /about/
   - /about.html
 ---
 
-I am a 2nd-year PhD student in Linguistics at McGill University and Mila, under Professor Siva Reddy, and a member of the McGill University Linguistic Department's Montreal Quantitative and Computational Linguistics Laboratory.
+I am a 2nd-year PhD student in Linguistics at <a href="https://www.mcgill.ca/linguistics/">McGill University</a> and <a href="https://mila.quebec/en/">Mila</a>, under Professor <a href="https://sivareddy.in/">Siva Reddy</a>, and a member of the McGill University Linguistic Department's <a href="https://mcqll.org/">Montreal Quantitative and Computational Linguistics Laboratory</a>.
