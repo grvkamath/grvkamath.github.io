@@ -1,6 +1,7 @@
 ---
 layout: archive
-title: "Publications"
+title: "Publications & Talks"
+description: Talks, posters and publications that I've contributed to.
 permalink: /publications/
 author_profile: true
 ---
