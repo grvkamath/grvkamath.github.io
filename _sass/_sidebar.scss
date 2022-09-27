@@ -123,7 +123,7 @@
 
 .author__bio {
   margin: 0;
-  font: monospace;
+  font-family: monospace;
   font-size:larger;
 
   @include breakpoint($large) {
