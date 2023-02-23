@@ -1,8 +1,8 @@
 ---
 layout: archive
-title: "Publications & Talks"
+title: "Publications, Talks & Posters"
 description: Talks, posters and publications that I've contributed to.
-permalink: /publications/
+permalink: /research/
 author_profile: true
 ---
 
