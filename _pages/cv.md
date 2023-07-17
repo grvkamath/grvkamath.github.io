@@ -7,5 +7,4 @@ redirect_from:
   - /resume
 ---
 
-This page will be updated!
-
+<a href="/files/17.07.2023_GauravKamath_CV.pdf">Up to date as of July 2023.</a>

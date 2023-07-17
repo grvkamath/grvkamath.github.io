@@ -12,4 +12,6 @@ I am a 2nd-year PhD student in Linguistics at <a href="https://www.mcgill.ca/lin
 
 Outside of research, I also like to teach, having done so in varying capacities since my time as an undergraduate. And outside of academia entirely, I enjoy reading fiction, going bouldering, listening to a wide variety of music, and watching football/soccer (I support Arsenal, although <a href="https://i.imgur.com/LOMjTy9.jpg">sometimes I wonder why</a>).
 
-This website was last updated (and also first went up) on 26/09/2022. I'll be adding more stuff to it (a CV, pages for teaching, research, etc.) in the near future.
+How to pronounce my name: \[ˈɡɐwˌrəv\], \[ˈɡɑˌrəv\], or anything else vaguely similar.
+
+This website was last updated on 17/07/2023. 

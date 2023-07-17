@@ -7,6 +7,8 @@ author_profile: true
 ---
 
 ### 2023
+Gaurav Kamath, Sebastian Schuster, Sowmya Vajjala and Siva Reddy. 'Scope Ambiguities in Large Language Models'. [under review].
+
 Gaurav Kamath* and Laurestine Bradford*. <a href="https://scholarworks.umass.edu/cgi/viewcontent.cgi?article=1274&context=scil">'Does a Neural Language Model Understand the De Re / De Dicto Distinction?'</a> In <i>Proceedings of the Society for Computation in Linguistics, 6(1)</i>, 69-84.
 
 ### 2022
