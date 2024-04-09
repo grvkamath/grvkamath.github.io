@@ -1,6 +1,6 @@
 ---
 layout: archive
-title: "Research"
+title: "Publications & Talks"
 description: Publications that I've contributed to, as well as any conference talks that didn't include proceedings.
 permalink: /research/
 author_profile: true
