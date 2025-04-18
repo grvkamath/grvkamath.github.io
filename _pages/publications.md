@@ -5,9 +5,10 @@ description: Publications that I've contributed to.
 permalink: /research/
 author_profile: true
 ---
+<small>(* denotes equal, joint first-author contribution; &#9826; denotes core, but not first-author contribution)</small>
 
 ### 2025
-- Sara Vera Marjanović\*<sup>1</sup>, Arkil Patel\*<sup>1</sup>, Vaibhav Adlakha, Milad Aghajohari, Parishad BehnamGhader, Mehar Bhatia, Aditi Khandelwal, Austin Kraft, Benno Krojer, Xing Han Lù, Nicholas Meade, Dongchan Shin, Amirhossein Kazemnejad\*, <b>Gaurav Kamath\*</b>, Marius Mosbach\*, Karolina Stańczak\*, Siva Reddy. 'DeepSeek-R1 Thoughtology: Let's &lt;think&gt; about LLM Reasoning'. <a href="https://arxiv.org/pdf/2504.07128">\[ArXiV\]</a>
+- Sara Vera Marjanović\*, Arkil Patel\*, Vaibhav Adlakha, Milad Aghajohari, Parishad BehnamGhader, Mehar Bhatia, Aditi Khandelwal, Austin Kraft, Benno Krojer, Xing Han Lù, Nicholas Meade, Dongchan Shin, Amirhossein Kazemnejad<sup>&#9826;</sup>, <b>Gaurav Kamath<sup>&#9826;</sup></b>, Marius Mosbach<sup>&#9826;</sup>, Karolina Stańczak<sup>&#9826;</sup>, Siva Reddy. 'DeepSeek-R1 Thoughtology: Let's &lt;think&gt; about LLM Reasoning'. <a href="https://arxiv.org/pdf/2504.07128">\[ArXiV\]</a>
 
 - <b>Gaurav Kamath</b>, Michelle Yang, Siva Reddy, Morgan Sonderegger and Dallas Card. 'Semantic Change is Not Primarily a Generational Process'. Under review at <i>Proceedings of the National Academy of Sciences of the United States of America</i>.
 
@@ -20,4 +21,4 @@ author_profile: true
 - <b>Gaurav Kamath\*</b> and Laurestine Bradford\*. <a href="https://aclanthology.org/2023.scil-1.6/"> 'Does a neural model understand the de re / de dicto distinction?'</a>. In <i>Proceedings of the Society for Computation in Linguistics 2023</i>, pages 69–84, Amherst, MA. Association for Computational Linguistics.
 
 ### 2022
-- Gaurav Kamath. 'Lexical Semantics for Expressives.' 2022 Toronto-Ottawa-Montreal Semantics Workshop. Online, May 28, 2022. [<a href="http://grvkamath.github.io/files/TOM_14_Handout.pdf">Talk Handout</a>] [Manuscript in preparation]
+- <b>Gaurav Kamath</b>. 'Lexical Semantics for Expressives.' 2022 Toronto-Ottawa-Montreal Semantics Workshop. Online, May 28, 2022. [<a href="http://grvkamath.github.io/files/TOM_14_Handout.pdf">Talk Handout</a>] [Manuscript in preparation]
