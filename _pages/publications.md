@@ -12,7 +12,7 @@ author_profile: true
 
 - <b>Gaurav Kamath</b>, Michelle Yang, Siva Reddy, Morgan Sonderegger and Dallas Card. 'Semantic Change is Not Primarily a Generational Process'. Under review at <i>Proceedings of the National Academy of Sciences of the United States of America</i>.
 
-- Ada Tur\*, <b>Gaurav Kamath\*</b> and Siva Reddy. 'Language Models Largely Exhibit Human-like Constituent Ordering Preferences'. To be Presented at NAACL 2025 (Main Conference). <a href="https://arxiv.org/pdf/2502.05670">\[ArXiV\]</a>
+- Ada Tur\*, <b>Gaurav Kamath\*</b> and Siva Reddy. 'Language Models Largely Exhibit Human-like Constituent Ordering Preferences'. To be Presented at NAACL 2025 (Main Conference). <a href="https://arxiv.org/pdf/2502.05670">\[ArXiV\]</a> \[🏆 SAC Award Winner\]
 
 ### 2024
 - <b>Gaurav Kamath</b>, Sebastian Schuster, Sowmya Vajjala and Siva Reddy. <a href="https://direct.mit.edu/tacl/article/doi/10.1162/tacl_a_00670/121540/Scope-Ambiguities-in-Large-Language-Models"> 'Scope Ambiguities in Large Language Models'</a>. In <i>Transactions of the Association for Computational Linguistics</i>.
