@@ -7,4 +7,4 @@ redirect_from:
   - /resume
 ---
 
-<a href="/files/09.01.2025_GauravKamath_CV.pdf">Up to date as of January 2025.</a>
+<a href="/files/16.09.2025_GauravKamath_CV.pdf">Up to date as of September 16, 2025.</a>
