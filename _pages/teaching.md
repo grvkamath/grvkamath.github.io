@@ -5,7 +5,15 @@ permalink: /teaching/
 author_profile: true
 ---
 
-I have held the following teaching roles:
+I am currently teaching my first full course!
+
+**Winter 2026**\
+Instructor, *From Natural Language to Data Science*\
+McGill University\
+<a href="https://mcgill-nlp.github.io/teaching/comp345-ling345-W26/">Syllabus</a>\
+Note: I'll be uploading my course materials (slides + Jupyter notebooks) here soon!
+
+I have also held the following teaching roles:
 
 **Winter 2025**\
 Teaching Assistant, *From Natural Language to Data Science*\
