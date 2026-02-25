@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProbCOPA Interactive Explorer</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root {
+  --bg: #fafafa;
+  --card: #fff;
+  --border: #e0e0e0;
+  --text: #333;
+  --text-light: #666;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --human-color: #ff7f0e;
+  --tab-hover: #f0f4ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+header { background: var(--card); border-bottom: 1px solid var(--border); padding: 24px 0 0; }
+header h1 { font-size: 1.6rem; font-weight: 700; }
+header p { color: var(--text-light); font-size: 0.95rem; margin-top: 4px; }
+header a { color: var(--accent); text-decoration: none; }
+header a:hover { text-decoration: underline; }
+
+.tabs { display: flex; gap: 0; margin-top: 16px; overflow-x: auto; }
+.tab { padding: 10px 18px; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text-light); border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+.tab:hover { color: var(--accent); background: var(--tab-hover); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.view { display: none; padding: 24px 0; }
+.view.active { display: block; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+.controls label { font-size: 0.85rem; font-weight: 500; }
+.controls select, .controls input[type="text"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; background: var(--card); }
+.controls select { min-width: 160px; }
+
+.model-toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.model-toggle { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 16px; font-size: 0.8rem; cursor: pointer; user-select: none; background: var(--card); transition: background 0.15s, border-color 0.15s; }
+.model-toggle.active { background: var(--accent-light); border-color: var(--accent); }
+.model-toggle .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.item-text { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+.item-text .premise { font-size: 1.05rem; font-weight: 500; }
+.item-text .arrow { color: var(--text-light); margin: 4px 0; }
+.item-text .hypothesis { font-size: 1.05rem; }
+.item-text .meta { font-size: 0.8rem; color: var(--text-light); margin-top: 8px; }
+
+.stats-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; min-width: 130px; }
+.stat-card .stat-label { font-size: 0.72rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-card .stat-value { font-size: 1.1rem; font-weight: 600; margin-top: 2px; }
+
+.nav-buttons { display: flex; gap: 8px; }
+.nav-buttons button { padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); cursor: pointer; font-size: 0.85rem; transition: background 0.15s; }
+.nav-buttons button:hover { background: var(--accent-light); }
+
+.chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+
+.view-description { font-size: 0.9rem; color: var(--text-light); margin-bottom: 16px; max-width: 800px; }
+
+.loading { text-align: center; padding: 60px 0; color: var(--text-light); font-size: 1.1rem; }
+
+footer { text-align: center; padding: 32px 0; color: var(--text-light); font-size: 0.82rem; border-top: 1px solid var(--border); margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<header>
+<div class="container">
+  <h1>ProbCOPA Interactive Explorer</h1>
+  <p>Exploring probabilistic inferences in humans and LLMs &mdash;
+     <a href="https://arxiv.org/abs/XXXX.XXXXX" target="_blank">Paper</a> &middot;
+     <a href="https://github.com/grvkamath/probabilistic-reasoning" target="_blank">Code</a></p>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-view="explorer">Item Explorer</div>
+    <div class="tab" data-view="entropy">Entropy</div>
+    <div class="tab" data-view="wasserstein">Wasserstein Distance</div>
+    <div class="tab" data-view="median">Median Comparison</div>
+    <div class="tab" data-view="reasoning">Reasoning Chain</div>
+    <div class="tab" data-view="ablation">Ablations</div>
+  </div>
+</div>
+</header>
+
+<main class="container">
+
+<div class="loading" id="loading">Loading data&hellip;</div>
+
+<!-- ========== 1. Item Explorer ========== -->
+<div class="view active" id="view-explorer">
+  <p class="view-description">Browse individual ProbCOPA items and compare the distribution of human likelihood scores with model responses. Each item asks: given a premise, how likely is the hypothesis as an effect?</p>
+  <div class="controls">
+    <label for="item-select">Item:</label>
+    <select id="item-select"></select>
+    <label for="item-sort">Sort by:</label>
+    <select id="item-sort">
+      <option value="uid">UID</option>
+      <option value="entropy_desc">Human Entropy (high→low)</option>
+      <option value="entropy_asc">Human Entropy (low→high)</option>
+      <option value="median_desc">Human Median (high→low)</option>
+      <option value="median_asc">Human Median (low→high)</option>
+    </select>
+    <div class="nav-buttons">
+      <button id="prev-item">← Prev</button>
+      <button id="next-item">Next →</button>
+    </div>
+  </div>
+  <div class="model-toggles" id="model-toggles"></div>
+  <div class="item-text" id="item-text"></div>
+  <div class="stats-row" id="item-stats"></div>
+  <div class="chart-container"><div id="chart-explorer" style="height:420px;"></div></div>
+</div>
+
+<!-- ========== 2. Entropy Scatter ========== -->
+<div class="view" id="view-entropy">
+  <p class="view-description">Compare the differential entropy (response variability) of human responses vs model responses for each item. Points above the diagonal indicate the model is <em>more</em> variable than humans; below means less variable.</p>
+  <div class="controls">
+    <label for="entropy-model">Model:</label>
+    <select id="entropy-model"></select>
+  </div>
+  <div class="chart-container"><div id="chart-entropy" style="height:540px;"></div></div>
+</div>
+
+<!-- ========== 3. Wasserstein Distance ========== -->
+<div class="view" id="view-wasserstein">
+  <p class="view-description">Wasserstein distance measures how different the model's response distribution is from the human distribution for each item. Higher values mean the model's responses diverge more from humans. Dot color shows human entropy.</p>
+  <div class="controls">
+    <label for="wass-model">Model:</label>
+    <select id="wass-model"></select>
+  </div>
+  <div class="chart-container"><div id="chart-wasserstein" style="height:540px;"></div></div>
+</div>
+
+<!-- ========== 4. Median Comparison ========== -->
+<div class="view" id="view-median">
+  <p class="view-description">Compare the median human likelihood score with the median model response for each item. Points on the diagonal indicate perfect agreement.</p>
+  <div class="controls">
+    <label for="median-model">Model:</label>
+    <select id="median-model"></select>
+  </div>
+  <div class="chart-container"><div id="chart-median" style="height:540px;"></div></div>
+</div>
+
+<!-- ========== 5. Reasoning Chain ========== -->
+<div class="view" id="view-reasoning">
+  <p class="view-description">Explore the relationship between a model's mean reasoning chain length (average number of reasoning tokens across 30 sampled responses per item) and various outcome metrics.</p>
+  <div class="controls">
+    <label for="reasoning-model">Model:</label>
+    <select id="reasoning-model"></select>
+    <label for="reasoning-metric">X-axis:</label>
+    <select id="reasoning-metric">
+      <option value="human_entropy">Human Entropy</option>
+      <option value="wasserstein">Wasserstein Distance</option>
+      <option value="model_entropy">Model Entropy</option>
+      <option value="median_model">Median Model Response</option>
+    </select>
+  </div>
+  <div class="chart-container"><div id="chart-reasoning" style="height:540px;"></div></div>
+</div>
+
+<!-- ========== 6. Ablations ========== -->
+<div class="view" id="view-ablation">
+  <p class="view-description">How do temperature and reasoning effort / thinking budget settings affect model behavior? Lines show aggregate metrics across all items.</p>
+  <div class="controls">
+    <label for="ablation-type">Ablation:</label>
+    <select id="ablation-type">
+      <option value="temperature">Temperature</option>
+      <option value="reasoning_effort">Reasoning Effort / Thinking Budget</option>
+      <option value="persona">Persona Prompting</option>
+    </select>
+    <label for="ablation-metric">Metric:</label>
+    <select id="ablation-metric">
+      <option value="mean_wasserstein">Mean Wasserstein Distance</option>
+      <option value="mean_entropy">Mean Model Entropy</option>
+      <option value="median_wasserstein">Median Wasserstein Distance</option>
+      <option value="median_entropy">Median Model Entropy</option>
+    </select>
+  </div>
+  <div class="chart-container"><div id="chart-ablation" style="height:540px;"></div></div>
+</div>
+
+</main>
+
+<footer>
+<div class="container">
+  ProbCOPA &mdash; Probabilistic Inferences in Humans and LLMs &middot; Kamath et al., 2026
+</div>
+</footer>
+
+<script>
+const MODEL_COLORS = {
+  'gpt-5': '#1f77b4',
+  'claude-sonnet-4.5': '#9467bd',
+  'DeepSeek-R1': '#d62728',
+  'gemini-3-pro-preview': '#2ca02c',
+  'Kimi-K2-Thinking': '#e377c2',
+  'Qwen3-235B-Thinking': '#8c564b',
+  'GLM-4.6': '#17becf',
+  'grok-4.1-fast': '#bcbd22',
+  'claude-opus-4.6': '#7f3fbf',
+};
+const HUMAN_COLOR = '#ff7f0e';
+const BIN_SIZE = 5;
+const BINS = Array.from({length: 21}, (_, i) => i * BIN_SIZE);
+
+let DATA = null;
+let items = [];
+let itemMap = {};
+let activeModels = new Set();
+let currentItemIndex = 0;
+let sortedUIDs = [];
+
+function isCanary(x) {
+  return x && typeof x === 'object' && x.type === 'canary';
+}
+
+function filterCanary(arr) {
+  return arr.filter(v => !isCanary(v));
+}
+
+function getItems() {
+  return DATA.items.filter(it => !isCanary(it));
+}
+
+function gaussianKDE(data, gridMin, gridMax, nPoints, bandwidth) {
+  if (data.length < 2) return {x: [], y: []};
+  const bw = bandwidth || 1.06 * Math.max(std(data), 1) * Math.pow(data.length, -0.2);
+  const step = (gridMax - gridMin) / (nPoints - 1);
+  const xs = Array.from({length: nPoints}, (_, i) => gridMin + i * step);
+  const ys = xs.map(x => {
+    let sum = 0;
+    for (const d of data) {
+      const z = (x - d) / bw;
+      sum += Math.exp(-0.5 * z * z);
+    }
+    return sum / (data.length * bw * Math.sqrt(2 * Math.PI));
+  });
+  return {x: xs, y: ys};
+}
+
+function std(arr) {
+  const m = arr.reduce((a, b) => a + b, 0) / arr.length;
+  return Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length);
+}
+
+function linearRegression(xs, ys) {
+  const n = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
+  const slope = den ? num / den : 0;
+  const intercept = my - slope * mx;
+  return {slope, intercept};
+}
+
+function spearmanCorrelation(xs, ys) {
+  const n = xs.length;
+  if (n < 3) return {rho: 0, t: 0};
+  function rank(arr) {
+    const sorted = arr.map((v, i) => ({v, i})).sort((a, b) => a.v - b.v);
+    const ranks = new Array(n);
+    let i = 0;
+    while (i < n) {
+      let j = i;
+      while (j < n - 1 && sorted[j + 1].v === sorted[i].v) j++;
+      const avgRank = (i + j) / 2 + 1;
+      for (let k = i; k <= j; k++) ranks[sorted[k].i] = avgRank;
+      i = j + 1;
+    }
+    return ranks;
+  }
+  const rx = rank(xs), ry = rank(ys);
+  const mx = rx.reduce((a, b) => a + b, 0) / n;
+  const my = ry.reduce((a, b) => a + b, 0) / n;
+  let num = 0, dx = 0, dy = 0;
+  for (let i = 0; i < n; i++) {
+    num += (rx[i] - mx) * (ry[i] - my);
+    dx += (rx[i] - mx) ** 2;
+    dy += (ry[i] - my) ** 2;
+  }
+  const rho = (dx && dy) ? num / Math.sqrt(dx * dy) : 0;
+  const t = rho * Math.sqrt((n - 2) / (1 - rho * rho));
+  return {rho, t, n};
+}
+
+// ---- Initialization ----
+fetch('data.json')
+  .then(r => r.json())
+  .then(d => { DATA = d; init(); })
+  .catch(e => { document.getElementById('loading').textContent = 'Error loading data: ' + e; });
+
+function init() {
+  document.getElementById('loading').style.display = 'none';
+  items = getItems();
+  itemMap = {};
+  items.forEach(it => { itemMap[it.UID] = it; });
+
+  setupTabs();
+  setupModelToggles();
+  setupItemSelector();
+  setupModelSelectors();
+  populateSortedUIDs();
+  renderExplorer();
+  setupEventListeners();
+}
+
+// ---- Tabs ----
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('view-' + tab.dataset.view).classList.add('active');
+      const viewName = tab.dataset.view;
+      if (viewName === 'entropy') renderEntropy();
+      else if (viewName === 'wasserstein') renderWasserstein();
+      else if (viewName === 'median') renderMedian();
+      else if (viewName === 'reasoning') renderReasoning();
+      else if (viewName === 'ablation') renderAblation();
+    });
+  });
+}
+
+// ---- Model Toggles ----
+function setupModelToggles() {
+  const container = document.getElementById('model-toggles');
+  const names = DATA.metadata.model_display_names;
+  DATA.metadata.models.forEach(m => {
+    activeModels.add(m);
+    const el = document.createElement('div');
+    el.className = 'model-toggle active';
+    el.dataset.model = m;
+    el.innerHTML = `<span class="dot" style="background:${MODEL_COLORS[m]}"></span>${names[m]}`;
+    el.addEventListener('click', () => {
+      if (activeModels.has(m)) { activeModels.delete(m); el.classList.remove('active'); }
+      else { activeModels.add(m); el.classList.add('active'); }
+      renderExplorer();
+    });
+    container.appendChild(el);
+  });
+}
+
+// ---- Item Selector ----
+function populateSortedUIDs() {
+  const sortBy = document.getElementById('item-sort').value;
+  const arr = items.map(it => {
+    const agg = DATA.human_aggregates[String(it.UID)] || {};
+    return { uid: it.UID, entropy: agg.diff_entropy || 0, median: agg.median || 0 };
+  });
+  if (sortBy === 'uid') arr.sort((a, b) => a.uid - b.uid);
+  else if (sortBy === 'entropy_desc') arr.sort((a, b) => b.entropy - a.entropy);
+  else if (sortBy === 'entropy_asc') arr.sort((a, b) => a.entropy - b.entropy);
+  else if (sortBy === 'median_desc') arr.sort((a, b) => b.median - a.median);
+  else if (sortBy === 'median_asc') arr.sort((a, b) => a.median - b.median);
+  sortedUIDs = arr.map(a => a.uid);
+}
+
+function setupItemSelector() {
+  const sel = document.getElementById('item-select');
+  populateSortedUIDs();
+  rebuildItemOptions();
+  sel.addEventListener('change', () => {
+    const uid = parseInt(sel.value);
+    currentItemIndex = sortedUIDs.indexOf(uid);
+    renderExplorer();
+  });
+  document.getElementById('item-sort').addEventListener('change', () => {
+    populateSortedUIDs();
+    rebuildItemOptions();
+    currentItemIndex = 0;
+    renderExplorer();
+  });
+}
+
+function rebuildItemOptions() {
+  const sel = document.getElementById('item-select');
+  sel.innerHTML = '';
+  sortedUIDs.forEach((uid, i) => {
+    const it = itemMap[uid];
+    const opt = document.createElement('option');
+    opt.value = uid;
+    const prem = it.premise.length > 40 ? it.premise.slice(0, 40) + '…' : it.premise;
+    opt.textContent = `[${uid}] ${prem}`;
+    sel.appendChild(opt);
+  });
+}
+
+function setupModelSelectors() {
+  const names = DATA.metadata.model_display_names;
+  ['entropy-model', 'wass-model', 'median-model', 'reasoning-model'].forEach(id => {
+    const sel = document.getElementById(id);
+    DATA.metadata.models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = names[m];
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function setupEventListeners() {
+  document.getElementById('prev-item').addEventListener('click', () => {
+    if (currentItemIndex > 0) { currentItemIndex--; syncItemSelect(); renderExplorer(); }
+  });
+  document.getElementById('next-item').addEventListener('click', () => {
+    if (currentItemIndex < sortedUIDs.length - 1) { currentItemIndex++; syncItemSelect(); renderExplorer(); }
+  });
+  document.getElementById('entropy-model').addEventListener('change', renderEntropy);
+  document.getElementById('wass-model').addEventListener('change', renderWasserstein);
+  document.getElementById('median-model').addEventListener('change', renderMedian);
+  document.getElementById('reasoning-model').addEventListener('change', renderReasoning);
+  document.getElementById('reasoning-metric').addEventListener('change', renderReasoning);
+  document.getElementById('ablation-type').addEventListener('change', renderAblation);
+  document.getElementById('ablation-metric').addEventListener('change', renderAblation);
+}
+
+function syncItemSelect() {
+  document.getElementById('item-select').value = sortedUIDs[currentItemIndex];
+}
+
+function navigateToItem(uid) {
+  const idx = sortedUIDs.indexOf(uid);
+  if (idx >= 0) {
+    currentItemIndex = idx;
+    syncItemSelect();
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelector('.tab[data-view="explorer"]').classList.add('active');
+    document.getElementById('view-explorer').classList.add('active');
+    renderExplorer();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+}
+
+// ---- Render: Item Explorer ----
+function renderExplorer() {
+  const uid = sortedUIDs[currentItemIndex];
+  const it = itemMap[uid];
+  const hAgg = DATA.human_aggregates[String(uid)] || {};
+  const hResp = filterCanary(DATA.human_responses[String(uid)] || []);
+
+  // Item text
+  document.getElementById('item-text').innerHTML = `
+    <div class="premise">${it.premise}</div>
+    <div class="arrow">→ As a result:</div>
+    <div class="hypothesis">${it.hypothesis}</div>
+    <div class="meta">UID: ${uid} &middot; Original label: ${it.hard_label === 1 ? 'Plausible' : 'Implausible'} &middot; ${hResp.length} human responses</div>
+  `;
+
+  // Stats
+  let statsHTML = `
+    <div class="stat-card"><div class="stat-label">Human Median</div><div class="stat-value">${hAgg.median ?? '—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Human Entropy</div><div class="stat-value">${hAgg.diff_entropy?.toFixed(2) ?? '—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Human Std</div><div class="stat-value">${hAgg.std ?? '—'}</div></div>
+  `;
+  activeModels.forEach(m => {
+    const mAgg = (DATA.model_aggregates[m] || {})[String(uid)] || {};
+    const names = DATA.metadata.model_display_names;
+    const hasData = mAgg.median != null;
+    const valText = hasData ? mAgg.median : '—';
+    const noDataNote = hasData ? '' : '<div style="font-size:0.7rem;color:#999;margin-top:2px;">No usable data; typically due to model hitting output token limits</div>';
+    statsHTML += `<div class="stat-card" style="border-left:3px solid ${MODEL_COLORS[m]}"><div class="stat-label">${names[m]} Median</div><div class="stat-value">${valText}</div>${noDataNote}</div>`;
+  });
+  document.getElementById('item-stats').innerHTML = statsHTML;
+
+  // Chart
+  const traces = [];
+  traces.push({
+    x: hResp, type: 'histogram',
+    xbins: {start: 0, end: 100, size: BIN_SIZE},
+    name: 'Human', marker: {color: HUMAN_COLOR}, opacity: 0.6,
+  });
+  if (hResp.length >= 2) {
+    const kde = gaussianKDE(hResp, 0, 100, 200, 5);
+    traces.push({
+      x: kde.x, y: kde.y, mode: 'lines', yaxis: 'y2',
+      line: {color: HUMAN_COLOR, width: 2}, name: 'Human KDE', showlegend: false, hoverinfo: 'skip',
+    });
+  }
+  const names = DATA.metadata.model_display_names;
+  activeModels.forEach(m => {
+    const mResp = filterCanary((DATA.model_responses[m] || {})[String(uid)] || []);
+    traces.push({
+      x: mResp, type: 'histogram',
+      xbins: {start: 0, end: 100, size: BIN_SIZE},
+      name: names[m], marker: {color: MODEL_COLORS[m]}, opacity: 0.5,
+    });
+    if (mResp.length >= 2) {
+      const kde = gaussianKDE(mResp, 0, 100, 200, 5);
+      traces.push({
+        x: kde.x, y: kde.y, mode: 'lines', yaxis: 'y2',
+        line: {color: MODEL_COLORS[m], width: 2}, name: `${names[m]} KDE`, showlegend: false, hoverinfo: 'skip',
+      });
+    }
+  });
+
+  Plotly.newPlot('chart-explorer', traces, {
+    barmode: 'overlay',
+    xaxis: {title: 'Likelihood Score (0–100)', range: [-2, 102], dtick: 10},
+    yaxis: {title: 'Count'},
+    yaxis2: {overlaying: 'y', side: 'right', showgrid: false, showticklabels: false, zeroline: false},
+    legend: {orientation: 'h', y: 1.12},
+    margin: {t: 40, r: 20},
+    hoverlabel: {namelength: -1},
+  }, {responsive: true});
+}
+
+// ---- Render: Entropy Scatter ----
+function renderEntropy() {
+  const model = document.getElementById('entropy-model').value;
+  const names = DATA.metadata.model_display_names;
+  const xs = [], ys = [], texts = [], uids = [];
+
+  items.forEach(it => {
+    const uid = it.UID;
+    const hAgg = DATA.human_aggregates[String(uid)] || {};
+    const mAgg = (DATA.model_aggregates[model] || {})[String(uid)] || {};
+    if (hAgg.diff_entropy != null && mAgg.diff_entropy != null) {
+      xs.push(hAgg.diff_entropy);
+      ys.push(mAgg.diff_entropy);
+      texts.push(`[${uid}] ${it.premise}<br>→ ${it.hypothesis}`);
+      uids.push(uid);
+    }
+  });
+
+  // Human validation baseline
+  const vxs = [], vys = [], vtexts = [], vuids = [];
+  if (DATA.human_validation) {
+    Object.entries(DATA.human_validation).forEach(([uid, v]) => {
+      if (v.human_diff_entropy != null && v.diff_entropy != null) {
+        vxs.push(v.human_diff_entropy);
+        vys.push(v.diff_entropy);
+        const it = itemMap[parseInt(uid)];
+        vtexts.push(it ? `[${uid}] ${it.premise}<br>→ ${it.hypothesis}` : `[${uid}]`);
+        vuids.push(parseInt(uid));
+      }
+    });
+  }
+
+  const allXs = xs.concat(vxs), allYs = ys.concat(vys);
+  const maxVal = Math.max(Math.max(...allXs), Math.max(...allYs)) + 0.3;
+  const traces = [
+    {x: [0, maxVal], y: [0, maxVal], mode: 'lines', line: {dash: 'dash', color: '#ccc'}, showlegend: false, hoverinfo: 'skip'},
+    {x: vxs, y: vys, mode: 'markers', type: 'scatter', text: vtexts, customdata: vuids,
+     marker: {color: HUMAN_COLOR, size: 8, opacity: 0.7}, name: 'Human Baseline (Hold-Out Group)',
+     hovertemplate: '%{text}<br>Entropy of Human Responses: %{x:.2f}<br>Entropy of Hold-Out Group: %{y:.2f}<extra></extra>'},
+    {x: xs, y: ys, mode: 'markers', type: 'scatter', text: texts, customdata: uids,
+     marker: {color: MODEL_COLORS[model], size: 7, opacity: 0.7}, name: names[model],
+     hovertemplate: '%{text}<br>Entropy of Human Responses: %{x:.2f}<br>Entropy of Model Responses: %{y:.2f}<extra></extra>'}
+  ];
+
+  Plotly.newPlot('chart-entropy', traces, {
+    xaxis: {title: 'Entropy of Human Responses', range: [0, maxVal]},
+    yaxis: {title: `Entropy of ${names[model]} Responses`, range: [0, maxVal]},
+    margin: {t: 20, r: 20},
+    legend: {x: 0.02, y: 0.98},
+  }, {responsive: true});
+
+  document.getElementById('chart-entropy').on('plotly_click', function(d) {
+    if (d.points[0].customdata != null) navigateToItem(d.points[0].customdata);
+  });
+}
+
+// ---- Render: Wasserstein Distance ----
+function renderWasserstein() {
+  const model = document.getElementById('wass-model').value;
+  const names = DATA.metadata.model_display_names;
+  const xs = [], ys = [], colors = [], texts = [], uids = [];
+
+  items.forEach(it => {
+    const uid = it.UID;
+    const hAgg = DATA.human_aggregates[String(uid)] || {};
+    const mAgg = (DATA.model_aggregates[model] || {})[String(uid)] || {};
+    if (hAgg.median != null && mAgg.wasserstein != null) {
+      xs.push(hAgg.median);
+      ys.push(mAgg.wasserstein);
+      colors.push(hAgg.diff_entropy || 0);
+      texts.push(`[${uid}] ${it.premise}<br>→ ${it.hypothesis}`);
+      uids.push(uid);
+    }
+  });
+
+  // Human validation baseline
+  const vxs = [], vys = [], vtexts = [], vuids = [];
+  if (DATA.human_validation) {
+    Object.entries(DATA.human_validation).forEach(([uid, v]) => {
+      if (v.human_median != null && v.wasserstein != null) {
+        vxs.push(v.human_median);
+        vys.push(v.wasserstein);
+        const it = itemMap[parseInt(uid)];
+        vtexts.push(it ? `[${uid}] ${it.premise}<br>→ ${it.hypothesis}` : `[${uid}]`);
+        vuids.push(parseInt(uid));
+      }
+    });
+  }
+
+  const traces = [
+    {x: vxs, y: vys, mode: 'markers', type: 'scatter', text: vtexts, customdata: vuids,
+     marker: {color: HUMAN_COLOR, size: 8, opacity: 0.7}, name: 'Human Baseline (Hold-Out Group)',
+     hovertemplate: '%{text}<br>Median Human Likelihood Score: %{x}<br>Wasserstein Distance from Human Distribution: %{y:.1f}<extra></extra>'},
+    {x: xs, y: ys, mode: 'markers', type: 'scatter', text: texts, customdata: uids,
+     marker: {color: colors, colorscale: 'Blues', size: 7, colorbar: {title: 'Entropy of<br>Human<br>Responses', thickness: 14, len: 0.6}},
+     name: names[model],
+     hovertemplate: '%{text}<br>Median Human Likelihood Score: %{x}<br>Wasserstein Distance from Human Distribution: %{y:.1f}<extra></extra>'}
+  ];
+
+  Plotly.newPlot('chart-wasserstein', traces, {
+    xaxis: {title: 'Median Human Likelihood Score', range: [0, 100]},
+    yaxis: {title: `Wasserstein Distance from Human Distribution (${names[model]})`, rangemode: 'tozero'},
+    margin: {t: 20, r: 20},
+    legend: {x: 0.02, y: 0.98},
+  }, {responsive: true});
+
+  document.getElementById('chart-wasserstein').on('plotly_click', function(d) {
+    if (d.points[0].customdata != null) navigateToItem(d.points[0].customdata);
+  });
+}
+
+// ---- Render: Median Comparison ----
+function renderMedian() {
+  const model = document.getElementById('median-model').value;
+  const names = DATA.metadata.model_display_names;
+  const xs = [], ys = [], texts = [], uids = [];
+
+  items.forEach(it => {
+    const uid = it.UID;
+    const hAgg = DATA.human_aggregates[String(uid)] || {};
+    const mAgg = (DATA.model_aggregates[model] || {})[String(uid)] || {};
+    if (hAgg.median != null && mAgg.median != null) {
+      xs.push(hAgg.median);
+      ys.push(mAgg.median);
+      texts.push(`[${uid}] ${it.premise}<br>→ ${it.hypothesis}`);
+      uids.push(uid);
+    }
+  });
+
+  // Human validation baseline
+  const vxs = [], vys = [], vtexts = [], vuids = [];
+  if (DATA.human_validation) {
+    Object.entries(DATA.human_validation).forEach(([uid, v]) => {
+      if (v.human_median != null && v.median != null) {
+        vxs.push(v.human_median);
+        vys.push(v.median);
+        const it = itemMap[parseInt(uid)];
+        vtexts.push(it ? `[${uid}] ${it.premise}<br>→ ${it.hypothesis}` : `[${uid}]`);
+        vuids.push(parseInt(uid));
+      }
+    });
+  }
+
+  const traces = [
+    {x: [0, 100], y: [0, 100], mode: 'lines', line: {dash: 'dash', color: '#ccc'}, showlegend: false, hoverinfo: 'skip'},
+    {x: vxs, y: vys, mode: 'markers', type: 'scatter', text: vtexts, customdata: vuids,
+     marker: {color: HUMAN_COLOR, size: 8, opacity: 0.7}, name: 'Human Baseline (Hold-Out Group)',
+     hovertemplate: '%{text}<br>Median Human Likelihood Score: %{x}<br>Median Hold-Out Likelihood Score: %{y}<extra></extra>'},
+    {x: xs, y: ys, mode: 'markers', type: 'scatter', text: texts, customdata: uids,
+     marker: {color: MODEL_COLORS[model], size: 7, opacity: 0.7}, name: names[model],
+     hovertemplate: '%{text}<br>Median Human Likelihood Score: %{x}<br>Median Model Likelihood Score: %{y}<extra></extra>'}
+  ];
+
+  Plotly.newPlot('chart-median', traces, {
+    xaxis: {title: 'Median Human Likelihood Score', range: [-2, 102]},
+    yaxis: {title: `Median ${names[model]} Likelihood Score`, range: [-2, 102]},
+    margin: {t: 20, r: 20},
+    legend: {x: 0.02, y: 0.98},
+  }, {responsive: true});
+
+  document.getElementById('chart-median').on('plotly_click', function(d) {
+    if (d.points[0].customdata != null) navigateToItem(d.points[0].customdata);
+  });
+}
+
+// ---- Render: Reasoning Chain ----
+function renderReasoning() {
+  const model = document.getElementById('reasoning-model').value;
+  const metric = document.getElementById('reasoning-metric').value;
+  const names = DATA.metadata.model_display_names;
+
+  // Check if this model has any reasoning token data
+  const mAggs = DATA.model_aggregates[model] || {};
+  const hasTokenData = Object.values(mAggs).some(a => a.mean_reasoning_tokens != null);
+  if (!hasTokenData) {
+    Plotly.newPlot('chart-reasoning', [], {
+      xaxis: {visible: false}, yaxis: {visible: false},
+      annotations: [{
+        text: `${names[model]} does not return reasoning token count information.`,
+        xref: 'paper', yref: 'paper', x: 0.5, y: 0.5,
+        showarrow: false, font: {size: 16, color: '#888'},
+      }],
+      margin: {t: 20, r: 20},
+    }, {responsive: true});
+    return;
+  }
+
+  const xs = [], ys = [], texts = [], uids = [];
+
+  const metricLabels = {
+    human_entropy: 'Human Differential Entropy',
+    wasserstein: 'Wasserstein Distance',
+    model_entropy: `${names[model]} Differential Entropy`,
+    median_model: `Median ${names[model]} Response`,
+  };
+
+  items.forEach(it => {
+    const uid = it.UID;
+    const hAgg = DATA.human_aggregates[String(uid)] || {};
+    const mAgg = (DATA.model_aggregates[model] || {})[String(uid)] || {};
+    const rtokens = mAgg.mean_reasoning_tokens;
+    if (rtokens == null) return;
+
+    let yVal = null;
+    if (metric === 'human_entropy') yVal = hAgg.diff_entropy;
+    else if (metric === 'wasserstein') yVal = mAgg.wasserstein;
+    else if (metric === 'model_entropy') yVal = mAgg.diff_entropy;
+    else if (metric === 'median_model') yVal = mAgg.median;
+
+    if (yVal != null) {
+      xs.push(yVal);
+      ys.push(rtokens);
+      texts.push(`[${uid}] ${it.premise}<br>→ ${it.hypothesis}`);
+      uids.push(uid);
+    }
+  });
+
+  const traces = [{
+    x: xs, y: ys, mode: 'markers', type: 'scatter', text: texts, customdata: uids,
+    marker: {color: MODEL_COLORS[model], size: 7, opacity: 0.7}, name: names[model], showlegend: false,
+    hovertemplate: '%{text}<br>' + metricLabels[metric] + ': %{x:.2f}<br>Mean Reasoning Tokens: %{y:.0f}<extra></extra>'
+  }];
+
+  // Regression line + Spearman correlation (skip for median_model due to non-monotonic relationship)
+  const regAnnotations = [];
+  if (xs.length >= 3 && metric !== 'median_model') {
+    const reg = linearRegression(xs, ys);
+    const xMin = Math.min(...xs), xMax = Math.max(...xs);
+    traces.push({
+      x: [xMin, xMax], y: [reg.intercept + reg.slope * xMin, reg.intercept + reg.slope * xMax],
+      mode: 'lines', line: {color: MODEL_COLORS[model], width: 2, dash: 'dash'},
+      showlegend: false, hoverinfo: 'skip',
+    });
+    const sp = spearmanCorrelation(xs, ys);
+    regAnnotations.push({
+      x: 0.98, y: 0.98, xref: 'paper', yref: 'paper', xanchor: 'right', yanchor: 'top',
+      text: `Spearman ρ = ${sp.rho.toFixed(3)}<br>n = ${sp.n}`,
+      showarrow: false, font: {size: 13, family: 'monospace'},
+      bgcolor: 'rgba(255,255,255,0.85)', bordercolor: '#ccc', borderwidth: 1, borderpad: 6,
+    });
+  }
+
+  Plotly.newPlot('chart-reasoning', traces, {
+    xaxis: {title: metricLabels[metric]},
+    yaxis: {title: 'Mean Reasoning Token Count'},
+    margin: {t: 20, r: 20},
+    annotations: regAnnotations,
+  }, {responsive: true});
+
+  document.getElementById('chart-reasoning').on('plotly_click', function(d) {
+    if (d.points[0].customdata != null) navigateToItem(d.points[0].customdata);
+  });
+}
+
+// ---- Render: Ablations ----
+function renderAblation() {
+  const ablationType = document.getElementById('ablation-type').value;
+  const metricKey = document.getElementById('ablation-metric').value;
+  const names = DATA.metadata.model_display_names;
+
+  const metricLabels = {
+    mean_wasserstein: 'Mean Wasserstein Distance',
+    mean_entropy: 'Mean Model Entropy',
+    median_wasserstein: 'Median Wasserstein Distance',
+    median_entropy: 'Median Model Entropy',
+  };
+
+  const traces = [];
+  const shapes = [];
+  const annotations = [];
+
+  // Human validation baseline as a horizontal line
+  const hvs = DATA.human_validation_summary || {};
+  const baselineVal = hvs[metricKey];
+
+  function addBaselineShapeAndAnnotation() {
+    if (baselineVal == null) return;
+    shapes.push({type: 'line', xref: 'paper', x0: 0, x1: 1, y0: baselineVal, y1: baselineVal,
+      line: {color: HUMAN_COLOR, width: 2, dash: 'dash'}});
+    annotations.push({
+      x: 1.0, xref: 'paper', xanchor: 'left',
+      y: baselineVal, yref: 'y',
+      text: `  ${baselineVal.toFixed(2)}`,
+      showarrow: false, font: {size: 11, color: HUMAN_COLOR, family: 'monospace'},
+    });
+    const aggType = metricKey.startsWith('mean_') ? 'Mean' : 'Median';
+    traces.push({x: [null], y: [null], mode: 'lines', name: `Human Baseline (${aggType} from Hold-Out Group)`,
+      line: {color: HUMAN_COLOR, width: 2, dash: 'dash'}});
+  }
+
+  function ablationYRange() {
+    const allYs = traces.flatMap(t => (t.y || []).filter(v => v != null && isFinite(v)));
+    if (baselineVal != null) allYs.push(baselineVal);
+    if (allYs.length === 0) return undefined;
+    const lo = Math.min(...allYs), hi = Math.max(...allYs);
+    const pad = (hi - lo) * 0.15 || 1;
+    return [Math.max(0, lo - pad), hi + pad];
+  }
+
+  if (ablationType === 'temperature') {
+    const byModel = {};
+    DATA.temperature_ablation.forEach(d => {
+      if (!byModel[d.model]) byModel[d.model] = {temps: [], vals: []};
+      byModel[d.model].temps.push(d.temperature);
+      byModel[d.model].vals.push(d[metricKey]);
+    });
+
+    Object.entries(byModel).forEach(([model, d]) => {
+      const displayName = names[model] || model;
+      traces.push({
+        x: d.temps, y: d.vals, mode: 'lines+markers', name: displayName,
+        line: {color: MODEL_COLORS[model], width: 2},
+        marker: {size: 8},
+      });
+    });
+
+    addBaselineShapeAndAnnotation();
+
+    Plotly.newPlot('chart-ablation', traces, {
+      xaxis: {title: 'Temperature', dtick: 0.4},
+      yaxis: {title: metricLabels[metricKey], range: ablationYRange()},
+      legend: {orientation: 'h', y: 1.1},
+      margin: {t: 40, r: 60},
+      shapes: shapes, annotations: annotations,
+    }, {responsive: true});
+
+  } else if (ablationType === 'reasoning_effort') {
+    const effortOrder = ['effort_low', 'effort_medium', 'effort_high'];
+    const budgetOrder = ['budget_512', 'budget_2048', 'budget_4096'];
+    const conditionLabels = {
+      effort_low: 'Low / 512', effort_medium: 'Medium / 2048', effort_high: 'High / 4096',
+      budget_512: 'Low / 512', budget_2048: 'Medium / 2048', budget_4096: 'High / 4096',
+    };
+
+    const byModel = {};
+    DATA.reasoning_effort_ablation.forEach(d => {
+      if (!byModel[d.model]) byModel[d.model] = [];
+      byModel[d.model].push(d);
+    });
+
+    Object.entries(byModel).forEach(([model, entries]) => {
+      const displayName = names[model] || model;
+      const isEffort = entries[0].condition.startsWith('effort_');
+      const order = isEffort ? effortOrder : budgetOrder;
+      const suffix = isEffort ? ' (effort)' : ' (budget)';
+      entries.sort((a, b) => order.indexOf(a.condition) - order.indexOf(b.condition));
+
+      traces.push({
+        x: entries.map(e => conditionLabels[e.condition] || e.condition),
+        y: entries.map(e => e[metricKey]),
+        mode: 'lines+markers', name: displayName + suffix,
+        line: {color: MODEL_COLORS[model] || '#999', width: 2},
+        marker: {size: 8},
+      });
+    });
+
+    addBaselineShapeAndAnnotation();
+
+    Plotly.newPlot('chart-ablation', traces, {
+      xaxis: {title: 'Reasoning Effort / Thinking Budget', type: 'category'},
+      yaxis: {title: metricLabels[metricKey], range: ablationYRange()},
+      legend: {orientation: 'h', y: 1.1},
+      margin: {t: 40, r: 60},
+      shapes: shapes, annotations: annotations,
+    }, {responsive: true});
+
+  } else if (ablationType === 'persona') {
+    const personaLabels = {none: 'None (Default)', demographic: 'Demographic', psychological: 'Psychological'};
+    const byModel = {};
+    DATA.persona_ablation.forEach(d => {
+      if (!byModel[d.model]) byModel[d.model] = [];
+      byModel[d.model].push(d);
+    });
+
+    Object.entries(byModel).forEach(([model, entries]) => {
+      const displayName = names[model] || model;
+      const defaultAgg = (DATA.main_model_summary[model] || {})[metricKey];
+      const xVals = ['None (Default)'];
+      const yVals = [defaultAgg];
+      entries.sort((a, b) => a.persona_type.localeCompare(b.persona_type));
+      entries.forEach(e => {
+        xVals.push(personaLabels[e.persona_type] || e.persona_type);
+        yVals.push(e[metricKey]);
+      });
+      traces.push({
+        x: xVals, y: yVals, mode: 'lines+markers', name: displayName,
+        line: {color: MODEL_COLORS[model] || '#999', width: 2},
+        marker: {size: 8},
+      });
+    });
+
+    addBaselineShapeAndAnnotation();
+
+    Plotly.newPlot('chart-ablation', traces, {
+      xaxis: {title: 'Persona Prompt Type', type: 'category'},
+      yaxis: {title: metricLabels[metricKey], range: ablationYRange()},
+      legend: {orientation: 'h', y: 1.1},
+      margin: {t: 40, r: 60},
+      shapes: shapes, annotations: annotations,
+    }, {responsive: true});
+  }
+}
+</script>
+</body>
+</html>
