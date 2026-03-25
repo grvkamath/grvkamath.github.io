@@ -1,10 +1,10 @@
 ---
-
-## layout: archive
+layout: archive
 title: "Publications"
 description: Publications that I've contributed to.
 permalink: /research/
 author_profile: true
+---
 
 (* denotes equal, joint first-author contribution; ♢ denotes core, but not first-author contribution)
 
