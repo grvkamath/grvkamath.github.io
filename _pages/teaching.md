@@ -18,9 +18,9 @@ Some examples below:
 
 <table width="100%">
   <tr>
-    <td width="33%"><img src="../images/NL2DS-linreg-screenshot.png" width="100%"/></td>
-    <td width="33%"><img src="../images/NL2DS-transformer-screenshot.png" width="100%"/></td>
-    <td width="33%"><img src="../images/NL2DS-word2vec-screenshot.png" width="100%"/></td>
+    <td width="33%"><img src="../images/NL2DS-linreg-screenshot.png" width="97.5%"/></td>
+    <td width="33%"><img src="../images/NL2DS-transformer-screenshot.png" width="97.5%"/></td>
+    <td width="33%"><img src="../images/NL2DS-word2vec-screenshot.png" width="97.5%"/></td>
   </tr>
 </table>
 
