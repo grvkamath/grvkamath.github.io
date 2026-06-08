@@ -5,13 +5,28 @@ permalink: /teaching/
 author_profile: true
 ---
 
-I am currently teaching my first full course!
-
 **Winter 2026**\
-Instructor, *From Natural Language to Data Science*\
+Course Instructor, *From Natural Language to Data Science*\
 McGill University\
 <a href="https://mcgill-nlp.github.io/teaching/comp345-ling345-W26/">Syllabus</a>\
-Note: I'll be uploading my course materials (slides + Jupyter notebooks) here soon!
+<a href="https://github.com/grvkamath/NL2DS-W2026">Course Material</a>\
+This course is meant to be a friendly introduction to data science and natural language processing that is broadly accessible to students with non-technical backgrounds. 
+I (re)designed the vast majority of it from scratch, including all of the material linked in the repository above.
+The course begins with text processing fundamentals, and then moves to data science fundamentals; it then focuses on introducing embeddings; then it moves to language modelling, culminating in the transformer; and finally, the last few lectures are spent on extended topics and guest lectures.
+The slides are designed to be detailed and accessible; each also comes with a companion Jupyter notebook that students can use to both see what concrete implementation looks like, as well as play around with the concepts covered in class.
+Some examples below:
+
+<table width="100%">
+  <tr>
+    <td width="33%"><img src="../images/NL2DS-linreg-screenshot.png" width="100%"/></td>
+    <td width="33%"><img src="../images/NL2DS-transformer-screenshot.png" width="100%"/></td>
+    <td width="33%"><img src="../images/NL2DS-word2vec-screenshot.png" width="100%"/></td>
+  </tr>
+</table>
+
+Feel free to adapt (with credit) any material that interests you, and please reach out if you spot any issues / have any feedback!
+
+-------------------------
 
 I have also held the following teaching roles:
 
